@@ -64,11 +64,16 @@ class DslSolverBuilder(logic: String?) {
         return context.mkEq(first, second)
     }
 
-    infix fun ArithExpr<out ArithSort>.GE(second: ArithExpr<out ArithSort>): BoolExpr? {
+    infix fun ArithExpr<out ArithSort>.UGE(second: ArithExpr<out ArithSort>): BoolExpr? {
         return context.mkGe(this, second)
     }
 
-    infix fun BitVecExpr.GE(second: BitVecExpr): BoolExpr? {
+
+    infix fun BitVecExpr.SGE(second: BitVecExpr): BoolExpr? {
+        return context.mkBVSGE(this, second)
+    }
+
+    infix fun BitVecExpr.UGE(second: BitVecExpr): BoolExpr? {
         return context.mkBVUGE(this, second)
     }
 
@@ -84,6 +89,10 @@ class DslSolverBuilder(logic: String?) {
         return context.mkEq(this, second)
     }
 
+    infix fun BoolExpr?.OR(second: BoolExpr?): BoolExpr? {
+        return context.mkOr(this, second)
+    }
+
     fun i(i: Int): ArithExpr<out ArithSort> {
         return context.mkInt(i)
     }
@@ -95,8 +104,6 @@ class DslSolverBuilder(logic: String?) {
     fun fr(numerator:Int, denominator:Int): ArithExpr<*> {
         return context.mkReal(numerator, denominator)
     }
-
-
 
     operator fun Int.times(second: ArithExpr<out ArithSort>) = context.mkMul(context.mkInt(this), second)
     operator fun ArithExpr<*>.times(second: ArithExpr<out ArithSort>) = context.mkMul(this, second)

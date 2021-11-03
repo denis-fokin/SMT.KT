@@ -83,7 +83,6 @@ class DenisYurichevTests {
         }.check {
             Assertions.assertEquals(it.toInt(), 1)
         }.onSuccess{ model, context ->
-            println(model)
             createIntAndAssert(context, model,"cut_A", 250)
             createIntAndAssert(context, model,"cut_B", 25)
             createIntAndAssert(context, model,"cut_C", 0)
@@ -137,33 +136,39 @@ class DenisYurichevTests {
             val set = arrayOf(-7, -3, -2, 5, 8)
 
             val variables = generateSequence(0) { it + 1 }
-                .take(set.size).map { bvVar("var_$it",32) }.toList().toTypedArray()
+                .take(set.size).map { bvVar("var_$it",32) }.toList()
 
-            val rt = variables.zip(set).map { (v, e) -> bvConst(context, e, 32)*v }.toList().toTypedArray()
+            val rt = variables.zip(set).map {
+                    (variable, setElement) ->
+                val setElementAsBV = bvConst(context, setElement, 32)
+                variable * setElementAsBV
+            }.toList()
 
             val bvConst_0 = bvConst(context, 0, 32)
             val bvConst_1 = bvConst(context, 1, 32)
 
             variables.forEach {
-                add( context.mkOr(it `=` bvConst_0, it `=` bvConst_1)) }
+                add((it `=` bvConst_0) OR (it `=` bvConst_1))
+            }
 
             val sumOfRt = rt.reduce { acc, bitVecExpr ->
                 context.mkBVAdd(acc, bitVecExpr)
             }
 
-            val sumOfVariables = rt.reduce { acc, bitVecExpr ->
+            val sumOfVariables = variables.reduce { acc, bitVecExpr ->
                 context.mkBVAdd(acc, bitVecExpr)
             }
 
-            add(sumOfVariables `=` bvConst_0)
-            add(sumOfRt GE bvConst_1)
+            add(sumOfRt `=` bvConst_0)
+            add(sumOfVariables SGE bvConst_1)
 
         }.check{
-            println(it)
+            Assertions.assertEquals(it.toInt(), 1)
         }.onSuccess { model, context ->
-            println(model)
+            createBvAndAssert(context, model,"var_1", "1".toInt(radix = 32), 32)
+            createBvAndAssert(context, model,"var_2", "1".toInt(radix = 32), 32)
+            createBvAndAssert(context, model,"var_3", "1".toInt(radix = 32), 32)
         }
-
     }
 
     @Test
@@ -192,7 +197,6 @@ class DenisYurichevTests {
     }
 
 }
-
 
 fun createBvAndAssert (context: Context, model: Model, name:String, expectedValue:Int, bvSize:Int) {
     val value = context.mkConst(context.mkSymbol(name), context.mkBitVecSort(bvSize)) as BitVecExpr
