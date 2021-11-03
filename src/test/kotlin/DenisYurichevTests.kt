@@ -22,9 +22,9 @@ class DenisYurichevTests {
         }.check {
             Assertions.assertEquals(it.toInt(), 1)
         }.onSuccess{ model, context ->
-            createRatAndAssert(context, model,"x", 1)
-            createRatAndAssert(context, model,"y", -2)
-            createRatAndAssert(context, model,"z", -2)
+            createRatAndAssert(context, model,"x", 1, 1)
+            createRatAndAssert(context, model,"y", -2, 1)
+            createRatAndAssert(context, model,"z", -2, 1)
         }
     }
 
@@ -45,9 +45,9 @@ class DenisYurichevTests {
         }.check {
             Assertions.assertEquals(it.toInt(), 1)
         }.onSuccess{ model, context ->
-            createRatAndAssert(context, model,"circle", 5)
-            createRatAndAssert(context, model,"triangle", 1)
-            createRatAndAssert(context, model,"square", 2)
+            createRatAndAssert(context, model,"circle", 5, 1)
+            createRatAndAssert(context, model,"triangle", 1, 1)
+            createRatAndAssert(context, model,"square", 2, 1)
         }
     }
 
@@ -172,6 +172,33 @@ class DenisYurichevTests {
     }
 
     @Test
+    fun test3_6 () {
+        // Art of problem-solving
+        solver {
+            config {
+                this["model"] = "true"
+            }
+
+            val (x, y) = realVar("x", "y")
+
+            val CONST_0 = intConst(0)
+
+            add(x GT CONST_0)
+            add(y GT CONST_0)
+
+            add( x + y `=` intConst(4) * x * y)
+
+            println()
+
+        }.check {
+            Assertions.assertEquals(it.toInt(), 1)
+        }.onSuccess{ model, context ->
+            createRatAndAssert(context, model,"x", 1, 1)
+            createRatAndAssert(context, model,"y", 1, 3)
+        }
+    }
+
+    @Test
     fun test3_7() {
         // Yet another explanation of modulo inverse using SMT-solvers
         solver {
@@ -208,7 +235,8 @@ fun createIntAndAssert (context: Context, model: Model, name:String, result:Int)
     Assertions.assertEquals(model.eval(value, true), context.mkInt(result))
 }
 
-fun createRatAndAssert (context: Context, model: Model, name:String, result:Int) {
+fun createRatAndAssert (context: Context, model: Model, name:String, numerator:Int, denominator:Int ) {
     val value = context.mkConst(context.mkSymbol(name), context.realSort) as ArithExpr<*>
-    Assertions.assertEquals((model.evaluate(value, true) as RatNum).numerator.int, result)
+    Assertions.assertEquals((model.evaluate(value, true) as RatNum).numerator.int, numerator)
+    Assertions.assertEquals((model.evaluate(value, true) as RatNum).denominator.int, denominator)
 }

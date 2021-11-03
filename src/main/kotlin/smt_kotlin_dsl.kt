@@ -68,6 +68,11 @@ class DslSolverBuilder(logic: String?) {
         return context.mkGe(this, second)
     }
 
+    // >
+    infix fun ArithExpr<out ArithSort>.GT(second: ArithExpr<out ArithSort>): BoolExpr? {
+        return context.mkGt(this, second)
+    }
+
 
     infix fun BitVecExpr.SGE(second: BitVecExpr): BoolExpr? {
         return context.mkBVSGE(this, second)
@@ -93,7 +98,7 @@ class DslSolverBuilder(logic: String?) {
         return context.mkOr(this, second)
     }
 
-    fun i(i: Int): ArithExpr<out ArithSort> {
+    fun intConst(i: Int): ArithExpr<out ArithSort> {
         return context.mkInt(i)
     }
 
@@ -103,6 +108,13 @@ class DslSolverBuilder(logic: String?) {
 
     fun fr(numerator:Int, denominator:Int): ArithExpr<*> {
         return context.mkReal(numerator, denominator)
+    }
+
+    fun realVar (vararg names: String) : List<ArithExpr<out ArithSort>> {
+        return names.
+        map { n ->
+            context.mkConst(context.mkSymbol(n), context.realSort) as ArithExpr<out ArithSort>
+        }.toList()
     }
 
     operator fun Int.times(second: ArithExpr<out ArithSort>) = context.mkMul(context.mkInt(this), second)
@@ -170,6 +182,11 @@ class DslOptimizerBuilder () {
         return context.mkGe(this, second)
     }
 
+    // >=
+    infix fun ArithExpr<out ArithSort>.GT(second: ArithExpr<out ArithSort>): BoolExpr? {
+        return context.mkGt(this, second)
+    }
+
     infix fun ArithExpr<*>.`=`(second: Int): BoolExpr? {
         return context.mkEq(this, context.mkInt(second))
     }
@@ -184,10 +201,6 @@ class DslOptimizerBuilder () {
 
     fun minimize(expr: ArithExpr<out ArithSort>) : Optimize.Handle<out ArithSort>{
         return solver.MkMinimize(expr)
-    }
-
-    fun fr(numerator:Int, denominator:Int): ArithExpr<*> {
-        return context.mkReal(numerator, denominator)
     }
 
     operator fun Int.times(second: ArithExpr<out ArithSort>) = context.mkMul(context.mkInt(this), second)
