@@ -1,0 +1,43 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.5.31'
+    id 'java'
+    id 'java-library'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation name: 'com.microsoft.z3'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+task runApp(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    mainClass = 'example.JavaExample'
+
+    // arguments to pass to the application
+    jvmArgs += ['-Djava.library.path=./libs/native']
+}
+
+/*tasks.withType(JavaExec) {
+    jvmArgs += "-Djava.library.path=C:\\Users\\denis\\IdeaProjects\\SMTSolvers\\libs\\native\\libz3.dll"
+}*/
+
+
+test {
+    useJUnitPlatform()
+}
