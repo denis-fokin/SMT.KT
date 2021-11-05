@@ -31,17 +31,6 @@ class DslSolverBuilder(logic: String?) {
 
     fun bvConst(context: Context, value: Int, size:Int) = context.mkBV(value, size)
 
-    fun s (string:String) : ArithExpr<out ArithSort> {
-        return context.mkConst(context.mkSymbol(string), context.realSort) as ArithExpr<out ArithSort>
-    }
-
-    fun s (vararg strings:String) : List<ArithExpr<out ArithSort>> {
-        return strings.
-        map { s ->  context.mkConst(context.mkSymbol(s), context.realSort) as ArithExpr<out ArithSort>}.
-        toList()
-    }
-
-
     fun check(cb:(Status) -> Unit): DslSolverBuilder {
         val status = solver.check()
         cb.invoke(status)
@@ -110,12 +99,28 @@ class DslSolverBuilder(logic: String?) {
         return context.mkReal(numerator, denominator)
     }
 
+    fun realVar (name: String) : ArithExpr<out ArithSort> {
+        return context.mkConst(context.mkSymbol(name), context.realSort) as ArithExpr<out ArithSort>
+    }
+
     fun realVar (vararg names: String) : List<ArithExpr<out ArithSort>> {
         return names.
         map { n ->
             context.mkConst(context.mkSymbol(n), context.realSort) as ArithExpr<out ArithSort>
         }.toList()
     }
+
+    fun intVar (name: String) : ArithExpr<out ArithSort> {
+        return context.mkConst(context.mkSymbol(name), context.intSort) as ArithExpr<out ArithSort>
+    }
+
+    fun intVar (vararg names: String) : List<ArithExpr<out ArithSort>> {
+        return names.
+        map { n ->
+            context.mkConst(context.mkSymbol(n), context.intSort) as ArithExpr<out ArithSort>
+        }.toList()
+    }
+
 
     operator fun Int.times(second: ArithExpr<out ArithSort>) = context.mkMul(context.mkInt(this), second)
     operator fun ArithExpr<*>.times(second: ArithExpr<out ArithSort>) = context.mkMul(this, second)

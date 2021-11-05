@@ -4,7 +4,7 @@ fun main() {
             this["model"] = "true"
         }
 
-        val (circle, square, triangle) = s("circle", "square", "triangle")
+        val (circle, square, triangle) = intVar("circle", "square", "triangle")
 
         add(circle + circle `=` 10)
         add(circle * square + square `=` 12)

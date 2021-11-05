@@ -11,9 +11,9 @@ class DenisYurichevTests {
                 this["model"] = "true"
             }
 
-            val x = s("x")
-            val y = s("y")
-            val z = s("z")
+            val x = realVar("x")
+            val y = realVar("y")
+            val z = realVar("z")
 
             add(3*x + 2*y - z `=` 1)
             add(2*x - 2*y + 4*z `=` -2)
@@ -36,7 +36,7 @@ class DenisYurichevTests {
                 this["model"] = "true"
             }
 
-            val (circle, square, triangle) = s("circle", "square", "triangle")
+            val (circle, square, triangle) = realVar("circle", "square", "triangle")
 
             add(circle + circle `=` 10)
             add(circle * square + square `=` 12)
@@ -223,6 +223,109 @@ class DenisYurichevTests {
         }
     }
 
+    @Test
+    fun test3_9() {
+
+        val known = arrayOf (
+            arrayOf("0","1","?","1","0","0","0","1","?"),
+            arrayOf("0","1","?","1","0","0","0","1","1"),
+            arrayOf("0","1","1","1","0","0","0","0","0"),
+            arrayOf("0","0","0","0","0","0","0","0","0"),
+            arrayOf("1","1","1","1","1","0","0","1","1"),
+            arrayOf("?","?","?","?","1","0","0","1","?"),
+            arrayOf("?","?","?","?","3","1","0","1","?"),
+            arrayOf("?","?","?","?","?","2","1","1","?"),
+            arrayOf("?","?","?","?","?","?","?","?","?")
+        )
+
+        val WIDTH = known[0].size
+        val HEIGHT = known.size
+
+        val WIDTH_WITH_BORDERS = WIDTH + 2
+        val HEIGHT_WITH_BORDERS = HEIGHT + 2
+
+
+        val cells = mutableListOf<List<String>>()
+
+        repeat(HEIGHT_WITH_BORDERS) { index ->
+            val newRow = mutableListOf<String>()
+            repeat (WIDTH_WITH_BORDERS) { columnIndex ->
+                newRow.add("r${index}_c${columnIndex % WIDTH_WITH_BORDERS}")
+            }
+            cells.add(newRow)
+        }
+
+        fun checkBomb (colToCheck:Int, rowToCheck:Int) {
+            solver {
+                config {
+                    this["model"] = "true"
+                }
+
+                // build borders
+
+                repeat(WIDTH_WITH_BORDERS) { c ->
+                    val variableNameLeft = cells[0][c]
+                    add(intVar(variableNameLeft) `=` 0)
+                    val variableNameRight = cells[HEIGHT + 1][c]
+                    add(intVar(variableNameRight) `=` 0)
+                }
+
+                repeat(HEIGHT_WITH_BORDERS) { r ->
+                    val variableNameTop = cells[r][0]
+                    add(intVar(variableNameTop) `=` 0)
+                    val variableNameDown = cells[r][WIDTH + 1]
+                    add(intVar(variableNameDown) `=` 0)
+                }
+
+                for (row in 1 .. HEIGHT) {
+                    for (col in 1 .. WIDTH) {
+                        val cell = intVar(cells[row][col])
+
+                        val INT_0 = intConst(0)
+                        val INT_1 = intConst(1)
+
+                        add((cell `=` INT_0) OR (cell `=` INT_1))
+
+                        val cellValue = known[row - 1][col - 1]
+
+                        // for the sake of the python code example
+                        val values = listOf("0","1","2","4","5","6","7","8")
+                        if (values.contains(cellValue)) {
+                            add(cell `=` INT_0)
+
+
+                            val expr = intVar(cells[row-1][col-1]) + intVar(cells[row-1][col]) + intVar(cells[row-1][col+1]) +
+                                    intVar(cells[row][col-1]) + intVar(cells[row][col+1]) + intVar(cells[row+1][col-1]) +
+                                    intVar(cells[row+1][col]) + intVar(cells[row+1][col+1]) `=` intVar(cellValue)
+
+                            if (false)
+                            println(cells[row-1][col-1] + " " + cells[row-1][col] + " " + cells[row-1][col+1] + " " +
+                                    cells[row][col-1] + " " + cells[row][col+1] + " " + cells[row+1][col-1] + " " +
+                                    cells[row+1][col] + " " + cells[row+1][col+1]  + " == " +  cellValue)
+
+
+                            add(expr)
+                        }
+
+
+                        add(intVar(cells[rowToCheck][colToCheck]) `=` INT_1)
+
+                    }
+                }
+                if (solver.check().toInt() != 1) {
+                    println ("row=${rowToCheck} col=${colToCheck}, unsat!")
+                }
+            }
+        }
+
+        for (row in 1 .. HEIGHT) {
+            for (col in 1 .. WIDTH) {
+                if (known[row-1][col-1] == "?") {
+                    checkBomb(col, row)
+                }
+            }
+        }
+    }
 }
 
 fun createBvAndAssert (context: Context, model: Model, name:String, expectedValue:Int, bvSize:Int) {

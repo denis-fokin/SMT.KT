@@ -4,9 +4,9 @@ fun main() {
             this["model"] = "true"
         }
 
-        val x = s("x")
-        val y = s("y")
-        val z = s("z")
+        val x = intVar("x")
+        val y = intVar("y")
+        val z = intVar("z")
 
         add(3*x + 2*y - z `=` 1)
         add(2*x - 2*y + 4*z `=` -2)
